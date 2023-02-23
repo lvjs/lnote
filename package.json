@@ -1,0 +1,22 @@
+{
+  "name": "lnote",
+  "version": "0.0.1",
+  "description": "awesome chrome extension for bookmark",
+  "main": "background.js",
+  "dependencies": {},
+  "devDependencies": {
+    "chrome-types": "^0.1.173"
+  },
+  "scripts": {
+    "build": "cd ./indexPage && npm run build && npm run mvdist",
+    "copy": "cp -R images background_scripts content_scripts pages background.js button.css manifest.json options.js options.html popup.html popup.js ./dist",
+    "pack": "npm run copy && npm run build"
+  },
+  "keywords": [
+    "bookmark",
+    "chrome",
+    "extension"
+  ],
+  "author": "woodsding",
+  "license": "MIT"
+}
