@@ -5,7 +5,8 @@
   "main": "background.js",
   "dependencies": {},
   "devDependencies": {
-    "chrome-types": "^0.1.173"
+    "chrome-types": "^0.1.173",
+    "less": "^4.1.3"
   },
   "scripts": {
     "build": "cd ./indexPage && npm run build && npm run mvdist",

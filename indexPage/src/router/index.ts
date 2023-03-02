@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 import HomeView from "../views/HomeView.vue";
+import BookmarkView from "../views/BookmarkView.vue";
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -8,6 +9,11 @@ const router = createRouter({
       path: "/",
       name: "home",
       component: HomeView,
+    },
+    {
+      path: "/bookmark",
+      name: "bookmark",
+      component: BookmarkView,
     },
     {
       path: "/about",
