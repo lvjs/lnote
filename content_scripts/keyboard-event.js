@@ -1,3 +1,17 @@
+// todo: 1. change window size(zoom in, zoom out by click 口 - || keyboard ctrl + - +)
+// todo: 2. keyboard ctrl + arraw move iframe
+
+// event system
+// 1. when loose focus, content window add keyboard listenser, and post to only the host env(current window)
+// event to content window: toggle content window, move position, change size.
+// event to background: null (default position/size use default settings)
+
+// when open a new content window, create temp storage for current tab, default empty.
+// if empty, try to retrive lnote bind to current url and store.(owner: content window)
+
+// initialize local storage for temp tab
+// initialize sync storage for all lnote data storage
+// sync storage for view
 let popupHandler = null
 function popNoteWindow() {
   if (popupHandler) {
@@ -5,9 +19,6 @@ function popNoteWindow() {
   }
   const iframeElement = document.createElement("iframe");
   const shadowWrapper = document.createElement("div");
-  // Firefox doesn't support createShadowRoot, so guard against its non-existance.
-  // https://hacks.mozilla.org/2018/10/firefox-63-tricks-and-treats/ says
-  // Firefox 63 has enabled Shadow DOM v1 by default
   let shadowDOM;
   if (shadowWrapper.attachShadow)
     shadowDOM = shadowWrapper.attachShadow({mode: "open"});
@@ -22,7 +33,6 @@ function popNoteWindow() {
     items => styleSheet.innerHTML = items.vimiumCSSInChromeStorage);
   shadowDOM.appendChild(styleSheet);
   shadowDOM.appendChild(iframeElement);
-  // iframeElement.src = chrome.runtime.getURL('pages/collect-panel.html');
   iframeElement.src = chrome.runtime.getURL('pages/index.html');
   document.documentElement.appendChild(shadowWrapper);
   console.log('iframeElement', iframeElement)

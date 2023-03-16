@@ -6,11 +6,14 @@ import vueJsx from "@vitejs/plugin-vue-jsx";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '', // 使用相对路径
+  base: "", // 使用相对路径
   plugins: [vue(), vueJsx()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
+  },
+  define: {
+    global: "window",
   },
 });

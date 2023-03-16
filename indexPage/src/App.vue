@@ -2,6 +2,8 @@
 import { RouterView } from "vue-router";
 import NavBar from "./components/NavBar.vue";
 console.log("window.location", window.location);
+// @ts-ignore
+window.global = window;
 // setTimeout(() => {
 //   window.location.hash = "#/about";
 // }, 4000);

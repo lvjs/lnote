@@ -20,7 +20,7 @@ header {
   background: #fff;
 }
 .wrapper {
-  opacity: 0.05;
+  opacity: 0.2;
   background: #fff;
   &:hover {
     background: aliceblue;
@@ -31,6 +31,8 @@ nav {
   width: 100%;
   font-size: 12px;
   text-align: center;
+  display: grid;
+  grid-auto-flow: column;
 }
 
 nav a.router-link-exact-active {
