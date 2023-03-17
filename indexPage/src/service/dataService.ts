@@ -63,9 +63,8 @@ class PersistStore {
     // for change login user
   }
   async ensureDBReady() {
-    await this.initProcess.then((res: any) => {
+    await this.initProcess.then(() => {
       console.log(`%c DB READY!`, "color: green");
-      console.log(res);
     });
   }
   async getTags(query: any = null): Promise<ITag[]> {
@@ -84,6 +83,15 @@ class PersistStore {
     const ts = +new Date();
     return this.localDB.linknote
       .insert({ ...note, createTime: ts, updateTime: ts })
+      .then((res: any) => {
+        console.log("add note", res, note);
+      });
+  }
+  async updateNote(note: IRecord) {
+    await this.ensureDBReady();
+    const ts = +new Date();
+    return this.localDB.linknote
+      .upsert({ ...note, updateTime: ts })
       .then((res: any) => {
         console.log("add note", res, note);
       });
