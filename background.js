@@ -1,6 +1,6 @@
 let color = '#3aa757';
 
-console.log('background.js');
+console.log('run background.js');
 (function() {
   console.log('fetch start')
   fetch(chrome.runtime.getURL("content_scripts/common.css")).then(res => {

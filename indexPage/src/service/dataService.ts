@@ -13,7 +13,9 @@ import type { IRecord, ITag } from "./schema";
 import { addRxPlugin } from "rxdb";
 import { RxDBMigrationPlugin } from "rxdb/plugins/migration";
 import { RxDBDevModePlugin } from "rxdb/plugins/dev-mode";
-addRxPlugin(RxDBDevModePlugin);
+if (import.meta.env.DEV) {
+  addRxPlugin(RxDBDevModePlugin);
+}
 addRxPlugin(RxDBMigrationPlugin);
 
 // todo: 后续增加用户注册功能

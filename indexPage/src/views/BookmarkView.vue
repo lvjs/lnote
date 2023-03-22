@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { reactive } from "vue";
+import { reactive, ref } from "vue";
 import noteStore from "../service/dataService";
 import type { IRecord } from "../service/schema";
 
+const formRef = ref<HTMLFormElement>();
 const form = reactive({
   title: "",
   url: "",
   tags: [],
   note: "",
   syncBrowser: true,
-} as IRecord);
+} as IRecord & { syncBrowser: boolean });
 // 记录匹配中的note，提交时采用更新操作（id, createTime不变，updateTime自动生成，其他使用form值覆盖）
 let matchNote: IRecord;
 let allTags: string[] = [];
@@ -24,8 +25,17 @@ noteStore.getTags().then((res) => {
 // todo 适配chrome ext. 检测&分支
 // 获取当前页面地址&查询地址对应的note，并填充到编辑表里面
 async function getNoteByUrlAndFill() {
-  const url = window.location.href;
+  let url: string;
+  if (import.meta.env.DEV) {
+    url = window.location.href;
+  } else {
+    let queryOptions = { active: true, lastFocusedWindow: true };
+    // `tab` will either be a `tabs.Tab` instance or `undefined`.
+    const [tab] = await chrome.tabs.query(queryOptions);
+    url = tab.url || "";
+  }
   await noteStore.getNotes({ url }).then((res) => {
+    console.log("url", url);
     console.log("%c 拉取url对应的note：", "color: green; font-size: 20px;");
     console.dir(res);
     if (res?.[0]) {
@@ -45,10 +55,9 @@ function handleTagChange(
     | Record<string, any>
     | (string | number | Record<string, any>)[]
 ) {
-  console.log("handleTagChange", value);
   if (Array.isArray(value)) {
     value.forEach((element) => {
-      if (allTags.indexOf(element) === -1) {
+      if (typeof element === "string" && allTags.indexOf(element) === -1) {
         noteStore.addTag({ content: element });
         allTags.push(element);
       }
@@ -72,6 +81,9 @@ const handleSubmit = (data: any) => {
     noteStore.addNote(note);
   }
 };
+function clearForm() {
+  formRef.value?.resetFields();
+}
 </script>
 <template>
   <a-form
@@ -124,7 +136,7 @@ const handleSubmit = (data: any) => {
     <a-form-item>
       <a-space>
         <a-button html-type="submit">Submit</a-button>
-        <a-button @click="$refs.formRef.resetFields()">Reset</a-button>
+        <a-button @click="clearForm">Reset</a-button>
       </a-space>
     </a-form-item>
   </a-form>

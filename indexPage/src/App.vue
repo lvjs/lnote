@@ -2,11 +2,10 @@
 import { RouterView } from "vue-router";
 import NavBar from "./components/NavBar.vue";
 console.log("window.location", window.location);
-// @ts-ignore
-window.global = window;
-// setTimeout(() => {
-//   window.location.hash = "#/about";
-// }, 4000);
+// todo: add state manager here to go to proper router
+setTimeout(() => {
+  window.location.hash = "#/about";
+}, 100);
 </script>
 
 <template>
