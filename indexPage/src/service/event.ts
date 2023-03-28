@@ -15,6 +15,9 @@ function getBasicEventAttribute(e: Event) {
 }
 async function onKeyEvent(event: KeyboardEvent) {
   console.log("lnote popup window onKeyEvent", event);
+  if (checkInputMode(event)) {
+    return;
+  }
   // todo: 事件漏斗：如果有match的处理函数且事件有组织冒泡属性，则不通过event_channel通知content_script，否则通知
   // just trigger event to content-script
   if (!import.meta.env.DEV) {
@@ -51,57 +54,57 @@ async function onKeyEvent(event: KeyboardEvent) {
 //   ["date", "datetime", "datetime-local", "email", "month", "number", "password", "range", "search",
 //    "tel", "text", "time", "url", "week"]
 // An unknown type will be treated the same as "text", in the same way that the browser does.
-//
-// function isSelectable(element: HTMLElement) {
-//   if (!(element instanceof Element)) {
-//     return false;
-//   }
-//   const unselectableTypes = [
-//     "button",
-//     "checkbox",
-//     "color",
-//     "file",
-//     "hidden",
-//     "image",
-//     "radio",
-//     "reset",
-//     "submit",
-//   ];
-//   return (
-//     (element.nodeName.toLowerCase() === "input" &&
-//       // @ts-ignore input got type
-//       unselectableTypes.indexOf(element.type) === -1) ||
-//     element.nodeName.toLowerCase() === "textarea" ||
-//     element.isContentEditable
-//   );
-// }
 
-// // Input or text elements are considered focusable and able to receieve their own keyboard events, and will
-// // enter insert mode if focused. Also note that the "contentEditable" attribute can be set on any element
-// // which makes it a rich text editor, like the notes on jjot.com.
-// function isEditable(element: HTMLElement) {
-//   return (
-//     isSelectable(element) ||
-//     (element.nodeName != null ? element.nodeName.toLowerCase() : undefined) ===
-//       "select"
-//   );
-// }
+function isSelectable(element: HTMLElement) {
+  if (!(element instanceof Element)) {
+    return false;
+  }
+  const unselectableTypes = [
+    "button",
+    "checkbox",
+    "color",
+    "file",
+    "hidden",
+    "image",
+    "radio",
+    "reset",
+    "submit",
+  ];
+  return (
+    (element.nodeName.toLowerCase() === "input" &&
+      // @ts-ignore input got type
+      unselectableTypes.indexOf(element.type) === -1) ||
+    element.nodeName.toLowerCase() === "textarea" ||
+    element.isContentEditable
+  );
+}
 
-// // Embedded elements like Flash and quicktime players can obtain focus.
-// function isEmbed(element: HTMLElement) {
-//   const nodeName =
-//     element.nodeName != null ? element.nodeName.toLowerCase() : null;
-//   return nodeName && ["embed", "object"].includes(nodeName);
-// }
+// Input or text elements are considered focusable and able to receieve their own keyboard events, and will
+// enter insert mode if focused. Also note that the "contentEditable" attribute can be set on any element
+// which makes it a rich text editor, like the notes on jjot.com.
+function isEditable(element: HTMLElement) {
+  return (
+    isSelectable(element) ||
+    (element.nodeName != null ? element.nodeName.toLowerCase() : undefined) ===
+      "select"
+  );
+}
 
-// function isFocusable(element: HTMLElement) {
-//   return element && (isEditable(element) || isEmbed(element));
-// }
-// function checkInputMode(event: KeyboardEvent) {
-//   // If an Input Method Editor is processing key input and the event is keydown, return 229.
-//   const isIMEKeyDown = event.keyCode === 229;
-//   return isIMEKeyDown || isFocusable(event.target as HTMLElement);
-// }
+// Embedded elements like Flash and quicktime players can obtain focus.
+function isEmbed(element: HTMLElement) {
+  const nodeName =
+    element.nodeName != null ? element.nodeName.toLowerCase() : null;
+  return nodeName && ["embed", "object"].includes(nodeName);
+}
+
+function isFocusable(element: HTMLElement) {
+  return element && (isEditable(element) || isEmbed(element));
+}
+function checkInputMode(event: KeyboardEvent) {
+  // If an Input Method Editor is processing key input and the event is keydown, return 229.
+  const isIMEKeyDown = event.keyCode === 229;
+  return isIMEKeyDown || isFocusable(event.target as HTMLElement);
+}
 // 全局事件注册
 document.addEventListener("keydown", onKeyEvent);
 

@@ -6,6 +6,7 @@
 // 离线 or 不开启同步：本地storage
 // online & 开启同步：远程数据库优先，读发生失败时尝试读取本地，写时多存一份到本地。写远程成功时，更新storage对应记录标志位为已同步。后台同步定期检查有未同步的note尝试同步。
 import { createRxDatabase } from "rxdb";
+import type { RxDocument } from "rxdb";
 import { getRxStorageDexie } from "rxdb/plugins/storage-dexie";
 import { linkNoteSchema, tagsSchema } from "./schema";
 import { getDateBasedPrimaryKey } from "../service/utils";
@@ -21,11 +22,15 @@ addRxPlugin(RxDBMigrationPlugin);
 // todo: 后续增加用户注册功能
 // userId 作为数据库的key
 const userId = "woodsding";
+const noteFilterDims: (keyof IRecord)[] = ["title", "url", "tags", "note"];
+const tagFilterDims: (keyof ITag)[] = ["content"];
 
 class PersistStore {
   // collectionReady: boolean = false;
   initProcess: any;
   localDB: any;
+  // memoryNotes: IRecord[]; // Required<IRecord>[];
+  // memoryTags: ITag[];
   constructor() {
     this.initProcess = this.init();
   }
@@ -73,9 +78,36 @@ class PersistStore {
     await this.ensureDBReady();
     return this.localDB.tags.find({ selector: query }).exec();
   }
-  async getNotes(query: any) {
+  async getNotes(query: any): Promise<RxDocument[]> {
     await this.ensureDBReady();
+
     return this.localDB.linknote.find({ selector: query }).exec();
+  }
+  async getNotesByKeyword(keyword: string) {
+    const allNotes = await this.getNotes(null);
+    console.log(
+      "allNotes",
+      allNotes.map((note) => note.toJSON())
+    );
+    // todo: filter here and memory cache notes and tags
+    // @ts-ignore todo fix ts error
+    const pureNotes: Required<IRecord>[] = allNotes?.map((note) =>
+      note.toJSON()
+    );
+    const results: IRecord[] = [];
+    const resultIds: string[] = [];
+    for (const key of noteFilterDims) {
+      pureNotes.map((item) => {
+        if (
+          resultIds.indexOf(item.id) === -1 &&
+          (item[key] as string).indexOf(keyword) !== -1
+        ) {
+          results.push(item);
+          resultIds.push(item.id);
+        }
+      });
+    }
+    return results;
   }
   async addNote(note: IRecord) {
     await this.ensureDBReady();

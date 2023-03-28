@@ -26,12 +26,14 @@ noteStore.getTags().then((res) => {
 // 获取当前页面地址&查询地址对应的note，并填充到编辑表里面
 async function getNoteByUrlAndFill() {
   let url: string;
+  let tabInfo: Record<string, any>;
   if (import.meta.env.DEV) {
     url = window.location.href;
   } else {
     let queryOptions = { active: true, lastFocusedWindow: true };
     // `tab` will either be a `tabs.Tab` instance or `undefined`.
     const [tab] = await chrome.tabs.query(queryOptions);
+    tabInfo = tab;
     url = tab.url || "";
   }
   await noteStore.getNotes({ url }).then((res) => {
@@ -44,6 +46,13 @@ async function getNoteByUrlAndFill() {
       form.url = matchNote.url;
       form.tags = matchNote.tags;
       form.note = matchNote.note;
+    } else {
+      if (tabInfo) {
+        form.title = tabInfo.title;
+        form.url = tabInfo.url;
+      }
+      // todo p2: 打开popWindow时传递meta.description并自动填充到note里面
+      // const metaDescription = document.querySelector('meta[name="description"]').getAttribute('content');
     }
   });
 }
@@ -113,7 +122,6 @@ function clearForm() {
         placeholder="select tags or press Enter to create new tag"
       >
         <a-option v-for="tag in allTags" :key="tag">{{ tag }}</a-option>
-        <!-- <a-option>Section Three</a-option> -->
       </a-select>
     </a-form-item>
     <a-form-item field="note" label="Note">
@@ -124,9 +132,9 @@ function clearForm() {
           minRows: 2,
         }"
       />
-      <template #extra>
+      <!-- <template #extra>
         <div>建议输入你的个人理解或者内容要点</div>
-      </template>
+      </template> -->
     </a-form-item>
     <a-form-item field="isRead">
       <a-checkbox v-model="form.syncBrowser">
