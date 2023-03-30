@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { reactive, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 import noteStore from "../service/dataService";
 import type { IRecord } from "../service/schema";
 
@@ -22,26 +23,32 @@ noteStore.getTags().then((res) => {
   console.log(allTags);
 });
 
-// todo 适配chrome ext. 检测&分支
-// 获取当前页面地址&查询地址对应的note，并填充到编辑表里面
-async function getNoteByUrlAndFill() {
-  let url: string;
-  let tabInfo: Record<string, any>;
-  if (import.meta.env.DEV) {
-    url = window.location.href;
-  } else {
-    let queryOptions = { active: true, lastFocusedWindow: true };
-    // `tab` will either be a `tabs.Tab` instance or `undefined`.
-    const [tab] = await chrome.tabs.query(queryOptions);
-    tabInfo = tab;
-    url = tab.url || "";
+let url: string | undefined;
+let tabInfo: Record<string, any>;
+
+const route = useRoute();
+const noteId = route.params.id;
+
+// &查询地址 or 参数对应的note，并填充到编辑表里面
+async function fetchNote(noteId: string) {
+  if (!noteId && !url) {
+    if (import.meta.env.DEV) {
+      url = window.location.href;
+    } else {
+      let queryOptions = { active: true, lastFocusedWindow: true };
+      // `tab` will either be a `tabs.Tab` instance or `undefined`.
+      const [tab] = await chrome.tabs.query(queryOptions);
+      tabInfo = tab;
+      url = tab.url as string;
+    }
   }
-  await noteStore.getNotes({ url }).then((res) => {
+  const searchParams = noteId ? { id: noteId } : url ? { url } : null;
+  noteStore.getNotes(searchParams).then((res) => {
     console.log("url", url);
-    console.log("%c 拉取url对应的note：", "color: green; font-size: 20px;");
+    console.log("%c 拉取到的note：", "color: green; font-size: 20px;");
     console.dir(res);
     if (res?.[0]) {
-      matchNote = res[0].toJSON();
+      matchNote = res[0].toJSON() as IRecord;
       form.title = matchNote.title;
       form.url = matchNote.url;
       form.tags = matchNote.tags;
@@ -56,7 +63,20 @@ async function getNoteByUrlAndFill() {
     }
   });
 }
-getNoteByUrlAndFill();
+// if use await in top level of setup, you would get empty content, to solve that, you should wrap it with Suspense
+// https://stackoverflow.com/questions/64009348/why-did-i-get-blank-empty-content-when-i-used-async-setup-in-vue-js-3
+// <template>
+//  <Suspense>
+//    <MyAsyncComponent />
+//  </Suspense>
+// </template>
+fetchNote(noteId as string);
+watch(
+  () => route.params.id,
+  (noteId) => {
+    fetchNote(noteId as string);
+  }
+);
 function handleTagChange(
   value:
     | string
@@ -74,7 +94,7 @@ function handleTagChange(
   }
 }
 function onClear() {
-  console.error("clear");
+  console.log("clear");
 }
 const handleSubmit = (data: any) => {
   const note = { ...data.values };

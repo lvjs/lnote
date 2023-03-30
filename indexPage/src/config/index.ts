@@ -6,3 +6,5 @@ export const MAX_ID_LENGTH = 3000;
 export const MAX_TAG_LENGTH = 3000;
 export const MAX_TAG_DESC_LENGTH = 10000;
 export const MAX_DATE_TIME = +new Date("2200-03-01");
+
+export const MAX_SEARCH_ITEM = 20; // 最大搜索条目数

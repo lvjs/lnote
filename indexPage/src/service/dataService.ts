@@ -11,6 +11,7 @@ import { getRxStorageDexie } from "rxdb/plugins/storage-dexie";
 import { linkNoteSchema, tagsSchema } from "./schema";
 import { getDateBasedPrimaryKey } from "../service/utils";
 import type { IRecord, ITag } from "./schema";
+import { MAX_SEARCH_ITEM } from "../config/index";
 import { addRxPlugin } from "rxdb";
 import { RxDBMigrationPlugin } from "rxdb/plugins/migration";
 import { RxDBDevModePlugin } from "rxdb/plugins/dev-mode";
@@ -97,13 +98,25 @@ class PersistStore {
     const results: IRecord[] = [];
     const resultIds: string[] = [];
     for (const key of noteFilterDims) {
-      pureNotes.map((item) => {
+      pureNotes.reverse().map((item) => {
         if (
-          resultIds.indexOf(item.id) === -1 &&
-          (item[key] as string).indexOf(keyword) !== -1
+          resultIds.length >= MAX_SEARCH_ITEM ||
+          resultIds.indexOf(item.id) !== -1
         ) {
+          return;
+        }
+
+        if (key !== "tags" && (item[key] as string).indexOf(keyword) !== -1) {
           results.push(item);
           resultIds.push(item.id);
+        } else if (key === "tags") {
+          for (let i = 0; i < item["tags"].length; i++) {
+            if (item["tags"][i].indexOf(keyword) !== -1) {
+              results.push(item);
+              resultIds.push(item.id);
+              break;
+            }
+          }
         }
       });
     }

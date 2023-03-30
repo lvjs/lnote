@@ -11,7 +11,7 @@ const router = createRouter({
       component: HomeView,
     },
     {
-      path: "/bookmark",
+      path: "/bookmark/:id?",
       name: "bookmark",
       component: () => import("../views/BookmarkView.vue"),
     },
