@@ -3,9 +3,11 @@ import { ref } from "vue";
 import noteStore from "../service/dataService";
 import Hightlight from "../components/Highlight";
 import router from "@/router";
+import globalData from "@/service/global";
 
-// todo: search only (bookmark) notes first。then add history, tab, system bookmark(highlight if match lnote)
-const options = ref([] as (string | Record<string, any>)[]);
+// ctrl/cmd + enter  && click to go to bookmark(if has) vs enter to view & edit note
+// todo1: search only (bookmark) notes first。then add history, tab, system bookmark(highlight if match lnote) <use worker to fetch>
+const options = ref([] as Record<string, any>[]);
 const loading = ref(false);
 
 const handleSearch = (keyword: string) => {
@@ -18,6 +20,7 @@ const handleSearch = (keyword: string) => {
         return {
           label: note.title,
           value: note.id,
+          url: note.url,
           render: () => {
             return (
               <div class="note-option">
@@ -63,8 +66,31 @@ type ISelectValChange =
   | Record<string, any>
   | (string | number | Record<string, any>)[];
 function handleValChange<T extends ISelectValChange>(noteId: T) {
-  // console.log("handleValChange", noteId);
-  router.push({ name: "bookmark", params: { id: noteId as string } });
+  console.log("%c valchange", "font-size: 30px; color: blue;");
+  // console.log(
+  //   "globalData.lastPressedKey?.metaKey",
+  //   globalData.lastPressedKey?.metaKey
+  // );
+  if (
+    globalData.lastPressedKey?.metaKey ||
+    globalData.lastPressedKey?.ctrlKey
+  ) {
+    // router.push({ name: "home" });
+    const url = options.value.filter((item) => item.value === noteId)?.[0].url;
+    if (url) {
+      // todo1: check if there is opened tab which has same url with option, if does, active it instead of open a new tab.
+      if (import.meta.env.DEV) {
+        window.open(url);
+      } else {
+        const winConfig = { url, active: true };
+        chrome.tabs.create(winConfig, (e) => {
+          console.log("openNewTab", e);
+        });
+      }
+    }
+  } else {
+    router.push({ name: "bookmark", params: { id: noteId as string } });
+  }
 }
 </script>
 <template>

@@ -1,3 +1,5 @@
+import globalData from "./global";
+
 // const eventKeyMap = {
 //   w: "togglePopWindow",
 // };
@@ -15,11 +17,16 @@ function getBasicEventAttribute(e: Event) {
 }
 async function onKeyEvent(event: KeyboardEvent) {
   console.log("lnote popup window onKeyEvent", event);
+  const noDomEvent = getBasicEventAttribute(event);
+  globalData.lastPressedKey = noDomEvent;
+  // console.error("lastPressKey", noDomEvent);
+  // 忽略文字输入和ime
   if (checkInputMode(event)) {
     return;
   }
   // todo: 事件漏斗：如果有match的处理函数且事件有组织冒泡属性，则不通过event_channel通知content_script，否则通知
-  // just trigger event to content-script
+
+  // trigger event to content-script
   if (!import.meta.env.DEV) {
     const [tab] = await chrome.tabs.query({
       active: true,
@@ -28,17 +35,12 @@ async function onKeyEvent(event: KeyboardEvent) {
     if (tab.id) {
       const response = await chrome.tabs.sendMessage(tab.id, {
         handlePopWindowMsg: true,
-        evt: getBasicEventAttribute(event),
+        evt: noDomEvent,
       });
       // do something with response here, not outside the function
       console.log(response);
     }
   }
-  // do something with response here, not outside the function
-  // 忽略文字输入和ime
-  // if (checkInputMode(event)) {
-  //   return true;
-  // }
   // // todo support Composite Key event handle if need
   // for (const key in eventKeyMap) {
   //   if (event.key === key) {

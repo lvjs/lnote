@@ -1,5 +1,31 @@
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
+// todo: 增加路由回退按钮
+// todo: icon replace router
+// todo: add nav forward and nav back button(use two stack)
+// const router = createRouter({ ... })
+
+// router.beforeEach((to, from) => {
+//   // ...
+//   // explicitly return false to cancel the navigation
+//   return false
+// })
+// router.beforeEach(async (to, from) => {
+//   if (
+//     // make sure the user is authenticated
+//     !isAuthenticated &&
+//     // ❗️ Avoid an infinite redirect
+//     to.name !== 'Login'
+//   ) {
+//     // redirect the user to the login page
+//     return { name: 'Login' }
+//   }
+// })
+// router.beforeEach(async (to, from) => {
+//   // canUserAccess() returns `true` or `false`
+//   const canAccess = await canUserAccess(to)
+//   if (!canAccess) return '/login'
+// })
 </script>
 
 <template>
