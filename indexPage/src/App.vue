@@ -16,9 +16,14 @@ setTimeout(() => {
     <RouterView />
   </div>
 </template>
-<style>
+<style lang="less">
 .main-container {
   background-color: var(--color-background);
-  padding: 30px;
+  padding: 5px 5px 10px 5px;
+}
+iframe {
+  .main-container {
+    box-shadow: 0px 0px 6px 6px rgba(212, 201, 201, 0.5);
+  }
 }
 </style>

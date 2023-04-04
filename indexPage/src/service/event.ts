@@ -1,10 +1,37 @@
 import globalData from "./global";
+import { reverseMap } from "./utils";
 
-// const eventKeyMap = {
-//   w: "togglePopWindow",
-// };
+type InoDomEvent = Record<string, boolean | number | string>;
+const eventKeyMap = {
+  w: "togglePopWindow",
+};
+const functionKeyMap = reverseMap(eventKeyMap);
+
+export async function sendEventToTab(evt: InoDomEvent | string) {
+  let event = evt;
+  if (typeof evt === "string") {
+    event = { key: functionKeyMap[evt] };
+  }
+
+  if (!import.meta.env.DEV) {
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      lastFocusedWindow: true,
+    });
+    if (tab.id) {
+      const response = await chrome.tabs.sendMessage(tab.id, {
+        msgFromPopWindow: true,
+        mockEvent: true,
+        evt: event,
+      });
+      // do something with response here, not outside the function
+      console.log(response);
+    }
+  }
+}
+
 function getBasicEventAttribute(e: Event) {
-  const basicAttrs: Record<string, boolean | number | string> = {};
+  const basicAttrs: InoDomEvent = {};
   for (const key in e) {
     if (
       ["boolean", "string", "number"].indexOf(typeof e[key as keyof Event]) !==
@@ -24,23 +51,10 @@ async function onKeyEvent(event: KeyboardEvent) {
   if (checkInputMode(event)) {
     return;
   }
-  // todo: 事件漏斗：如果有match的处理函数且事件有组织冒泡属性，则不通过event_channel通知content_script，否则通知
+  // todo: 事件漏斗：如果有match的处理函数且事件有阻止冒泡属性，则不通过event_channel通知content_script，否则通知
 
   // trigger event to content-script
-  if (!import.meta.env.DEV) {
-    const [tab] = await chrome.tabs.query({
-      active: true,
-      lastFocusedWindow: true,
-    });
-    if (tab.id) {
-      const response = await chrome.tabs.sendMessage(tab.id, {
-        handlePopWindowMsg: true,
-        evt: noDomEvent,
-      });
-      // do something with response here, not outside the function
-      console.log(response);
-    }
-  }
+  sendEventToTab(noDomEvent);
   // // todo support Composite Key event handle if need
   // for (const key in eventKeyMap) {
   //   if (event.key === key) {

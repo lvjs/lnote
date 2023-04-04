@@ -91,7 +91,12 @@ function onKeyEvent(event) {
   function isFocusable(element) {
     return element && (isEditable(element) || isEmbed(element));
   }
+// 检测输入源是否为类input元素，如果是，不进行keyboard事件响应
 function checkInputMode(event) {
+  // 模拟事件直接放行输入框检测
+  if (event.mockEvent) {
+    return false;
+  }
   // If an Input Method Editor is processing key input and the event is keydown, return 229.
   const isIMEKeyDown = event.keyCode === 229;
   return isIMEKeyDown || isFocusable(event.target)
@@ -111,7 +116,7 @@ chrome.runtime.onMessage.addListener(
     console.log(sender.tab ?
                 "from a content script:" + sender.tab.url :
                 "from the extension");
-    if (request.handlePopWindowMsg && request.evt) {
+    if (request.msgFromPopWindow && request.evt) {
       const evtHandled = onKeyEvent(request.evt);
       sendResponse({evtHandled});
     }

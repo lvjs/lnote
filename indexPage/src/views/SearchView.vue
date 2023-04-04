@@ -4,6 +4,7 @@ import noteStore from "../service/dataService";
 import Hightlight from "../components/Highlight";
 import router from "@/router";
 import globalData from "@/service/global";
+import { sendEventToTab } from "../service/event";
 
 // ctrl/cmd + enter  && click to go to bookmark(if has) vs enter to view & edit note
 // todo1: search only (bookmark) notes first。then add history, tab, system bookmark(highlight if match lnote) <use worker to fetch>
@@ -65,7 +66,7 @@ type ISelectValChange =
   | number
   | Record<string, any>
   | (string | number | Record<string, any>)[];
-function handleValChange<T extends ISelectValChange>(noteId: T) {
+async function handleValChange<T extends ISelectValChange>(noteId: T) {
   console.log("%c valchange", "font-size: 30px; color: blue;");
   // console.log(
   //   "globalData.lastPressedKey?.metaKey",
@@ -82,6 +83,8 @@ function handleValChange<T extends ISelectValChange>(noteId: T) {
       if (import.meta.env.DEV) {
         window.open(url);
       } else {
+        // 发送关闭弹窗事件
+        await sendEventToTab("togglePopWindow");
         const winConfig = { url, active: true };
         chrome.tabs.create(winConfig, (e) => {
           console.log("openNewTab", e);
@@ -140,7 +143,7 @@ function handleValChange<T extends ISelectValChange>(noteId: T) {
   border: none;
   box-shadow: none;
 }
-.arco-select-dropdown {
+.arco-scrollbar {
   box-shadow: 2px 2px 6px 3px rgba(212, 201, 201, 0.5);
 }
 .search-container {
