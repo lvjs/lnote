@@ -5,11 +5,34 @@ import Hightlight from "../components/Highlight";
 import router from "@/router";
 import globalData from "@/service/global";
 import { sendEventToTab } from "../service/event";
+import type { IRecord } from "@/service/schema";
 
-// ctrl/cmd + enter  && click to go to bookmark(if has) vs enter to view & edit note
+// ctrl/cmd + enter  && click to edit  | enter to go to bookmark
 // todo1: search only (bookmark) notes first。then add history, tab, system bookmark(highlight if match lnote) <use worker to fetch>
 const options = ref([] as Record<string, any>[]);
 const loading = ref(false);
+
+let deletingDoc = false;
+async function deleteNote(id: string) {
+  if (deletingDoc) {
+    return;
+  }
+  deletingDoc = true;
+  // todo 更新search options，重新检索，防止click穿透
+  const deleteDoc = await noteStore.deleteNote(id);
+
+  deletingDoc = false;
+  if (deleteDoc) {
+    const index = options.value.findIndex(
+      (item) => item.value === (deleteDoc.toJSON() as IRecord).id
+    );
+    options.value.splice(index, 1);
+  }
+}
+
+function editNote(id: string) {
+  router.push({ name: "bookmark", params: { id } });
+}
 
 const handleSearch = (keyword: string) => {
   if (keyword) {
@@ -24,7 +47,23 @@ const handleSearch = (keyword: string) => {
           url: note.url,
           render: () => {
             return (
-              <div class="note-option">
+              <div class="note-option" key={note.id}>
+                <div class="note-operation">
+                  <a-space>
+                    <icon-delete
+                      onClickCapture={(e: Event) => {
+                        e.stopPropagation();
+                        deleteNote(note.id as string);
+                      }}
+                    />
+                    <icon-edit
+                      onClickCapture={(e: Event) => {
+                        e.stopPropagation();
+                        editNote(note.id as string);
+                      }}
+                    />
+                  </a-space>
+                </div>
                 <a-space class="note-option__section">
                   <a-tag color="arcoblue">lnote</a-tag>
                   <div class="note-option__title">
@@ -73,8 +112,7 @@ async function handleValChange<T extends ISelectValChange>(noteId: T) {
   //   globalData.lastPressedKey?.metaKey
   // );
   if (
-    globalData.lastPressedKey?.metaKey ||
-    globalData.lastPressedKey?.ctrlKey
+    !(globalData.lastPressedKey?.metaKey || globalData.lastPressedKey?.ctrlKey)
   ) {
     // router.push({ name: "home" });
     const url = options.value.filter((item) => item.value === noteId)?.[0].url;
@@ -92,7 +130,7 @@ async function handleValChange<T extends ISelectValChange>(noteId: T) {
       }
     }
   } else {
-    router.push({ name: "bookmark", params: { id: noteId as string } });
+    editNote(noteId as string);
   }
 }
 </script>
@@ -154,14 +192,20 @@ async function handleValChange<T extends ISelectValChange>(noteId: T) {
     line-height: 1.6 !important;
   }
 }
+.arco-select-option-content {
+  flex-grow: 1;
+}
 .note-option {
   display: flex;
+  align-items: flex-start;
   flex-direction: column;
+  position: relative;
   // background: #f2f2f2;
   line-height: 1.2;
   padding: 4px 0;
   &__section {
     display: flex;
+    flex-grow: 1;
     align-items: center;
     flex-direction: row;
     padding: 2px;
@@ -173,6 +217,10 @@ async function handleValChange<T extends ISelectValChange>(noteId: T) {
   &__url {
     color: #0069c2;
   }
+}
+.note-operation {
+  position: absolute;
+  right: 0;
 }
 .arco-select-option {
   border-bottom: solid 1px #cccccc;

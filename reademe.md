@@ -9,18 +9,18 @@ todos
 # 2023年04月03日15:34:36
 todos
 1. no duplicate note (switch edit mode to update after add success | check note change after subimt action)
-2. after add or search notes, hide content popup
+2. *after add or search notes, hide content popup*
 3. sync system bookmark<p1>
-4. fix case sensitive search
+4. *fix case sensitive search*
 5. note search and manipulate(short cut for delete， snap view or other useful actions)
 6. note short cut for edit scenario(delete)
 
 # 2023年03月22日
 todo: query all notes
 make sure:
-1. show style
-2. query in a input box
-3. edit support
+1. *fine show style*
+2. *query in a input box*
+3. *edit support*
 4. **note view snap** in search view, show when note can't be fully displayed 
 
 ## unsorted thoughts

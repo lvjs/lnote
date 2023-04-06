@@ -84,6 +84,17 @@ class PersistStore {
 
     return this.localDB.linknote.find({ selector: query }).exec();
   }
+  async deleteNote(id: string): Promise<RxDocument> {
+    await this.ensureDBReady();
+
+    const query = this.localDB.linknote.findOne({
+      selector: { id: { $eq: id } },
+    });
+    const removedDoc = await query.remove();
+
+    console.error("sure to delete", id, removedDoc);
+    return removedDoc;
+  }
   async getNotesByKeyword(keyword: string) {
     const allNotes = await this.getNotes(null);
     console.log(
@@ -106,12 +117,19 @@ class PersistStore {
           return;
         }
 
-        if (key !== "tags" && (item[key] as string).indexOf(keyword) !== -1) {
+        if (
+          key !== "tags" &&
+          (item[key] as string).toLowerCase().indexOf(keyword.toLowerCase()) !==
+            -1
+        ) {
           results.push(item);
           resultIds.push(item.id);
         } else if (key === "tags") {
           for (let i = 0; i < item["tags"].length; i++) {
-            if (item["tags"][i].indexOf(keyword) !== -1) {
+            if (
+              item["tags"][i].toLowerCase().indexOf(keyword.toLowerCase()) !==
+              -1
+            ) {
               results.push(item);
               resultIds.push(item.id);
               break;
@@ -124,14 +142,17 @@ class PersistStore {
   }
   async addNote(note: IRecord) {
     await this.ensureDBReady();
-    if (!note?.id) {
-      note.id = getDateBasedPrimaryKey();
-    }
     const ts = +new Date();
     return this.localDB.linknote
-      .insert({ ...note, createTime: ts, updateTime: ts })
+      .insert({
+        ...note,
+        id: note.id || getDateBasedPrimaryKey(),
+        createTime: ts,
+        updateTime: ts,
+      })
       .then((res: any) => {
         console.log("add note", res, note);
+        return res.toJSON();
       });
   }
   async updateNote(note: IRecord) {
@@ -141,16 +162,23 @@ class PersistStore {
       .upsert({ ...note, updateTime: ts })
       .then((res: any) => {
         console.log("add note", res, note);
+        return res.toJSON();
       });
   }
   async addTag(tag: ITag) {
     await this.ensureDBReady();
-    if (!tag?.id) {
-      tag.id = getDateBasedPrimaryKey();
-    }
+    // warnning: don't alt param
+    // if (!tag?.id) {
+    //   tag.id = getDateBasedPrimaryKey();
+    // }
     const ts = +new Date();
     return this.localDB.tags
-      .insert({ ...tag, createTime: ts, updateTime: ts })
+      .insert({
+        ...tag,
+        id: tag.id || getDateBasedPrimaryKey(),
+        createTime: ts,
+        updateTime: ts,
+      })
       .then((res: any) => {
         console.log("add tag", res, tag);
       });

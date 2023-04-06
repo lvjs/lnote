@@ -1,9 +1,17 @@
 <script setup lang="ts">
 import { reactive, ref, watch } from "vue";
+import { getCurrentInstance } from "vue";
+import { useAttrs } from "vue";
+// import { Message } from "@arco-design/web-vue";
 import { useRoute } from "vue-router";
 import noteStore from "../service/dataService";
+import { sendEventToTab } from "../service/event";
 import type { IRecord } from "../service/schema";
+import type { Ref } from "vue";
+import { app } from "../main";
 
+const attrs = useAttrs();
+console.error("attrs", attrs);
 const formRef = ref<HTMLFormElement>();
 const form = reactive({
   title: "",
@@ -11,9 +19,9 @@ const form = reactive({
   tags: [],
   note: "",
   syncBrowser: true,
-} as IRecord & { syncBrowser: boolean });
+} as IRecord & { syncBrowser?: boolean });
 // 记录匹配中的note，提交时采用更新操作（id, createTime不变，updateTime自动生成，其他使用form值覆盖）
-let matchNote: IRecord;
+const currentNote: Ref<IRecord> = ref({ title: "" });
 let allTags: string[] = [];
 noteStore.getTags().then((res) => {
   console.log("%c all tags:", "color: green; font-size: 20px;");
@@ -48,7 +56,10 @@ async function fetchNote(noteId: string) {
     console.log("%c 拉取到的note：", "color: green; font-size: 20px;");
     console.dir(res);
     if (res?.[0]) {
-      matchNote = res[0].toJSON() as IRecord;
+      const matchNote = res[0].toJSON() as IRecord;
+
+      currentNote.value = matchNote;
+
       form.title = matchNote.title;
       form.url = matchNote.url;
       form.tags = matchNote.tags;
@@ -57,6 +68,8 @@ async function fetchNote(noteId: string) {
       if (tabInfo) {
         form.title = tabInfo.title;
         form.url = tabInfo.url;
+      } else if (url) {
+        form.url = url;
       }
       // todo p2: 打开popWindow时传递meta.description并自动填充到note里面
       // const metaDescription = document.querySelector('meta[name="description"]').getAttribute('content');
@@ -96,30 +109,60 @@ function handleTagChange(
 function onClear() {
   console.log("clear");
 }
-const handleSubmit = (data: any) => {
+async function handleSubmit(data: any) {
   const note = { ...data.values };
   note.sync = 0;
   if (note.syncBrowser) {
     // todo later: add or modify bookmark;
+    delete note.syncBrowser;
   }
-  delete note.syncBrowser;
   // console.log(data);
-  if (matchNote?.id) {
-    noteStore.updateNote({ ...matchNote, ...note });
+  if (currentNote.value.id) {
+    const res = await noteStore.updateNote({ ...currentNote.value, ...note });
+    currentNote.value = res;
+    app.config.globalProperties.$message.success({
+      id: "bookmarkview",
+      content: `更新成功`,
+      duration: 1500,
+    });
   } else {
-    noteStore.addNote(note);
+    const res = await noteStore.addNote(note);
+    currentNote.value = res;
+    app.config.globalProperties.$message.success({
+      id: "bookmarkview",
+      content: `添加成功`,
+      duration: 1500,
+    });
+    setTimeout(() => {
+      sendEventToTab("togglePopWindow");
+    }, 1500);
   }
-};
-function clearForm() {
-  formRef.value?.resetFields();
 }
+async function altAndCreateNew() {
+  const note = { ...form };
+  note.sync = 0;
+  if (note.syncBrowser) {
+    // todo later: add or modify bookmark;
+    delete note.syncBrowser;
+  }
+  const res = await noteStore.addNote(note);
+  currentNote.value = res;
+  app.config.globalProperties.$message.success({
+    id: "bookmarkview",
+    content: `另存成功`,
+    duration: 1500,
+  });
+}
+// function clearForm() {
+//   formRef.value?.resetFields();
+// }
 </script>
 <template>
   <a-form
     ref="formRef"
     :model="form"
     layout="vertical"
-    :style="{ width: '600px' }"
+    :style="{ width: '600px', padding: '0 20px' }"
     @submit="handleSubmit"
   >
     <a-form-item field="title" tooltip="default fill pageTitle" label="Title">
@@ -163,8 +206,15 @@ function clearForm() {
     </a-form-item>
     <a-form-item>
       <a-space>
-        <a-button html-type="submit">Submit</a-button>
-        <a-button @click="clearForm">Reset</a-button>
+        <a-button html-type="submit" type="primary"
+          ><icon-sync v-if="currentNote.id" />
+          <icon-plus-circle v-if="!currentNote.id" />
+          {{ currentNote.id ? "更新" : "创建" }}</a-button
+        >
+        <!-- <a-button @click="clearForm">Reset</a-button> -->
+        <a-button v-if="currentNote.id" @click="altAndCreateNew">
+          <icon-share-internal />另存</a-button
+        >
       </a-space>
     </a-form-item>
   </a-form>

@@ -13,4 +13,7 @@ module.exports = {
     ecmaVersion: "latest",
   },
   env: { webextensions: true },
+  rules: {
+    "no-param-reassign": 1,
+  },
 };

@@ -15,7 +15,7 @@ export type IRecord = {
   tags?: string[];
   note?: string; // 限制1000字符
   richNoteId?: string; // 富文本note id， 1期先不考虑
-  sync?: boolean; // 是否已同步远端
+  sync?: 0 | 1; // 是否已同步远端
   createTime?: number; // millionSeconds
   updateTime?: number; // millionSeconds
 };
@@ -25,7 +25,7 @@ export type ITag = {
   class?: 1 | 2 | 3;
   desc?: string;
   parentId?: number;
-  sync?: boolean; // 是否已同步远端
+  sync?: 0 | 1; // 是否已同步远端
   createTime?: number; // millionSeconds
   updateTime?: number; // millionSeconds
 };

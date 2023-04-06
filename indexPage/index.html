@@ -3,7 +3,13 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vite App</title> 
+    <title>Vite App</title>
+    <style>
+      /* fix unknown arco message style error */
+      .arco-message-list {
+        left: 0;
+      }
+    </style>
     <!-- Run Conditions-->
     <% if(isDev){ %>
         <script>
