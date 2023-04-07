@@ -14,7 +14,10 @@
 // sync storage for view
 
 const eventKeyMap = {
-  'w': togglePopWindow,
+  'w': togglePopWindow, // todo: go to note add pannel
+  's': togglePopWindow, // todo: go to note search pannel
+  // 't': togglePopWindow, // todo: go to task pannel
+  // 'p': togglePopWindow, // todo: go to profile pannel
 }
 
 let popupHandler = null;
@@ -34,8 +37,8 @@ function popNoteWindow() {
   styleSheet.type = "text/css";
   // Default to everything hidden while the stylesheet loads.
   // styleSheet.innerHTML = "iframe {display: none;}";
-  chrome.storage.local.get("vimiumCSSInChromeStorage",
-    items => styleSheet.innerHTML = items.vimiumCSSInChromeStorage);
+  chrome.storage.local.get("noteCSSInChromeStorage",
+    items => styleSheet.innerHTML = items.noteCSSInChromeStorage);
   shadowDOM.appendChild(styleSheet);
   shadowDOM.appendChild(iframeElement);
   iframeElement.src = chrome.runtime.getURL('pages/index.html');
@@ -101,6 +104,9 @@ function checkInputMode(event) {
   const isIMEKeyDown = event.keyCode === 229;
   return isIMEKeyDown || isFocusable(event.target)
 }
+// todo: wrap a event tunnel to communicate with popup window
+// 1. use iframe name
+// 2. use extention event model. need to resolve cold start by send a initial signal to content script when pop window's able to receive msg.
 function togglePopWindow() {
   if (!popupHandler) {
     popupHandler = popNoteWindow();

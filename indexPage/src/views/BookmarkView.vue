@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { reactive, ref, watch } from "vue";
-import { getCurrentInstance } from "vue";
 import { useAttrs } from "vue";
-// import { Message } from "@arco-design/web-vue";
 import { useRoute } from "vue-router";
 import noteStore from "../service/dataService";
 import { sendEventToTab } from "../service/event";
@@ -18,8 +16,7 @@ const form = reactive({
   url: "",
   tags: [],
   note: "",
-  syncBrowser: true,
-} as IRecord & { syncBrowser?: boolean });
+} as IRecord);
 // 记录匹配中的note，提交时采用更新操作（id, createTime不变，updateTime自动生成，其他使用form值覆盖）
 const currentNote: Ref<IRecord> = ref({ title: "" });
 let allTags: string[] = [];
@@ -112,18 +109,17 @@ function onClear() {
 async function handleSubmit(data: any) {
   const note = { ...data.values };
   note.sync = 0;
-  if (note.syncBrowser) {
-    // todo later: add or modify bookmark;
-    delete note.syncBrowser;
-  }
-  // console.log(data);
+  // if (note.syncBrowser) {
+  //   // todo later: add or modify bookmark accroding to profile settings, for now, default sync.
+  //   delete note.syncBrowser;
+  // }
   if (currentNote.value.id) {
     const res = await noteStore.updateNote({ ...currentNote.value, ...note });
     currentNote.value = res;
     app.config.globalProperties.$message.success({
       id: "bookmarkview",
       content: `更新成功`,
-      duration: 1500,
+      duration: 1000,
     });
   } else {
     const res = await noteStore.addNote(note);
@@ -131,27 +127,52 @@ async function handleSubmit(data: any) {
     app.config.globalProperties.$message.success({
       id: "bookmarkview",
       content: `添加成功`,
-      duration: 1500,
+      duration: 1000,
     });
     setTimeout(() => {
       sendEventToTab("togglePopWindow");
-    }, 1500);
+    }, 1000);
   }
 }
 async function altAndCreateNew() {
   const note = { ...form };
   note.sync = 0;
-  if (note.syncBrowser) {
-    // todo later: add or modify bookmark;
-    delete note.syncBrowser;
-  }
+  // if (note.syncBrowser) {
+  //   // todo later: add or modify bookmark;
+  //   delete note.syncBrowser;
+  // }
   const res = await noteStore.addNote(note);
   currentNote.value = res;
   app.config.globalProperties.$message.success({
     id: "bookmarkview",
     content: `另存成功`,
-    duration: 1500,
+    duration: 1000,
   });
+}
+let deletingDoc = false;
+async function deleteNote() {
+  if (!currentNote.value.id) {
+    return;
+  }
+  if (deletingDoc) {
+    return;
+  }
+  deletingDoc = true;
+  const id = currentNote.value.id;
+  const deleteDoc = await noteStore.deleteNote(id);
+
+  deletingDoc = false;
+  if (
+    deleteDoc &&
+    (deleteDoc.toJSON() as IRecord).id === currentNote.value.id
+  ) {
+    currentNote.value = {};
+    app.config.globalProperties.$message.success({
+      id: "bookmarkview",
+      content: `删除成功`,
+      duration: 1000,
+    });
+  }
 }
 // function clearForm() {
 //   formRef.value?.resetFields();
@@ -199,11 +220,6 @@ async function altAndCreateNew() {
         <div>建议输入你的个人理解或者内容要点</div>
       </template> -->
     </a-form-item>
-    <a-form-item field="isRead">
-      <a-checkbox v-model="form.syncBrowser">
-        sync browser bookmark
-      </a-checkbox>
-    </a-form-item>
     <a-form-item>
       <a-space>
         <a-button html-type="submit" type="primary"
@@ -212,9 +228,18 @@ async function altAndCreateNew() {
           {{ currentNote.id ? "更新" : "创建" }}</a-button
         >
         <!-- <a-button @click="clearForm">Reset</a-button> -->
-        <a-button v-if="currentNote.id" @click="altAndCreateNew">
+        <a-button type="outline" v-if="currentNote.id" @click="altAndCreateNew">
           <icon-share-internal />另存</a-button
         >
+
+        <a-popconfirm
+          v-if="currentNote.id"
+          content="确认删除?"
+          type="warning"
+          @ok="deleteNote"
+          ><a-button type="dashed"><icon-delete />删除</a-button>
+          <!-- <icon-delete size="28px" /> -->
+        </a-popconfirm>
       </a-space>
     </a-form-item>
   </a-form>

@@ -18,7 +18,6 @@ async function deleteNote(id: string) {
     return;
   }
   deletingDoc = true;
-  // todo 更新search options，重新检索，防止click穿透
   const deleteDoc = await noteStore.deleteNote(id);
 
   deletingDoc = false;

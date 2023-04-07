@@ -8,7 +8,7 @@ console.log('run background.js');
     if (res.ok) {
       // console.log('fetch css', res.text())
       res.text().then(txt => {
-        return chrome.storage.local.set({vimiumCSSInChromeStorage: txt});
+        return chrome.storage.local.set({noteCSSInChromeStorage: txt});
       })
     }
   })

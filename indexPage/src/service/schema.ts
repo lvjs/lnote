@@ -10,7 +10,7 @@ import {
 } from "@/config";
 export type IRecord = {
   id?: string;
-  title: string;
+  title?: string;
   url?: string;
   tags?: string[];
   note?: string; // 限制1000字符

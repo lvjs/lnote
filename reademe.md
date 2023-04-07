@@ -1,26 +1,36 @@
 ## lnote todos
 
+# 2023年04月07日16:34:01
+1. add task Manager <p1> <after build event tunnel>
+2. ~~disable content script in iframe window. fix by set "all_frames": false~~
+3. build long-lived event tunnel to link content script and iframe
+  a. build event stack in content script; 
+  b: iframe trigger inital event fetch stashed evnet in content script. 
+  c: disable when it's in popup.html or options.html
 
 # 2023年04月04日14:16:17
 todos
-1. 增加直接打开search pannel的快捷键
-2. 顶部菜单icon化，增加back，forward功能
+1. 增加直接打开search pannel的快捷键 <after build event tunnel>
+2. 顶部菜单icon化，增加back，forward功能 <p1>
+3. add desc header content to note content <after build event tunnel>
 
 # 2023年04月03日15:34:36
 todos
-1. no duplicate note (switch edit mode to update after add success | check note change after subimt action)
-2. *after add or search notes, hide content popup*
-3. sync system bookmark<p1>
-4. *fix case sensitive search*
-5. note search and manipulate(short cut for delete， snap view or other useful actions)
+1. no duplicate note (~~switch edit mode to update after add success~~ | check note change after subimt action)
+2. ~~after add or search notes, hide content popup~~
+3. sync system bookmark<p0>, sync settings move to profile settings instead of bookmark view<p2>
+  a. if no matched bookmark for current url, create a new one
+  b. if do have matched bookmark, update it.
+4. ~~fix case sensitive search~~
+5. note search and manipulate(~~short cut for delete~~， snap view or other useful actions)
 6. note short cut for edit scenario(delete)
 
 # 2023年03月22日
 todo: query all notes
 make sure:
-1. *fine show style*
-2. *query in a input box*
-3. *edit support*
+1. ~~fine show style~~
+2. ~~query in a input box~~
+3. ~~edit support~~
 4. **note view snap** in search view, show when note can't be fully displayed 
 
 ## unsorted thoughts
