@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive, ref, watch } from "vue";
-import { useAttrs } from "vue";
+// import { useAttrs } from "vue";
 import { useRoute } from "vue-router";
 import noteStore from "../service/dataService";
 import { sendEventToTab } from "../service/event";
@@ -8,8 +8,8 @@ import type { IRecord } from "../service/schema";
 import type { Ref } from "vue";
 import { app } from "../main";
 
-const attrs = useAttrs();
-console.error("attrs", attrs);
+// const attrs = useAttrs();
+// console.error("attrs", attrs);
 const formRef = ref<HTMLFormElement>();
 const form = reactive({
   title: "",
@@ -103,17 +103,48 @@ function handleTagChange(
     });
   }
 }
+function checkSubmit(type = "update") {
+  if (!form.title) {
+    app.config.globalProperties.$message.error({
+      id: "bookmarkview",
+      content: `标题不能为空`,
+      duration: 1000,
+    });
+    return false;
+  }
+
+  if (!form.url && !form.note) {
+    app.config.globalProperties.$message.error({
+      id: "bookmarkview",
+      content: `网址和笔记内容不能同时为空`,
+      duration: 1000,
+    });
+    return false;
+  }
+  if (type !== "update") {
+    return true;
+  }
+  // diff currentNote and form values
+  const diffKeys = ["title", "url", "note"];
+  for (const key of diffKeys) {
+    if (
+      form[key as keyof IRecord] !== currentNote.value[key as keyof IRecord]
+    ) {
+      return true;
+    }
+  }
+  return JSON.stringify(form.tags) !== JSON.stringify(currentNote.value.tags);
+}
 function onClear() {
   console.log("clear");
 }
 async function handleSubmit(data: any) {
   const note = { ...data.values };
   note.sync = 0;
-  // if (note.syncBrowser) {
-  //   // todo later: add or modify bookmark accroding to profile settings, for now, default sync.
-  //   delete note.syncBrowser;
-  // }
   if (currentNote.value.id) {
+    if (!checkSubmit()) {
+      return false;
+    }
     const res = await noteStore.updateNote({ ...currentNote.value, ...note });
     currentNote.value = res;
     app.config.globalProperties.$message.success({
@@ -122,6 +153,9 @@ async function handleSubmit(data: any) {
       duration: 1000,
     });
   } else {
+    if (!checkSubmit("add")) {
+      return false;
+    }
     const res = await noteStore.addNote(note);
     currentNote.value = res;
     app.config.globalProperties.$message.success({
@@ -137,10 +171,9 @@ async function handleSubmit(data: any) {
 async function altAndCreateNew() {
   const note = { ...form };
   note.sync = 0;
-  // if (note.syncBrowser) {
-  //   // todo later: add or modify bookmark;
-  //   delete note.syncBrowser;
-  // }
+  if (!checkSubmit("add")) {
+    return false;
+  }
   const res = await noteStore.addNote(note);
   currentNote.value = res;
   app.config.globalProperties.$message.success({

@@ -10,6 +10,7 @@ import type { RxDocument } from "rxdb";
 import { getRxStorageDexie } from "rxdb/plugins/storage-dexie";
 import { linkNoteSchema, tagsSchema } from "./schema";
 import { getDateBasedPrimaryKey } from "../service/utils";
+import { addOrUpdateBookMark } from "../service/bookmark";
 import type { IRecord, ITag } from "./schema";
 import { MAX_SEARCH_ITEM } from "../config/index";
 import { addRxPlugin } from "rxdb";
@@ -24,7 +25,7 @@ addRxPlugin(RxDBMigrationPlugin);
 // userId 作为数据库的key
 const userId = "woodsding";
 const noteFilterDims: (keyof IRecord)[] = ["title", "url", "tags", "note"];
-const tagFilterDims: (keyof ITag)[] = ["content"];
+// const tagFilterDims: (keyof ITag)[] = ["content"];
 
 class PersistStore {
   // collectionReady: boolean = false;
@@ -142,6 +143,14 @@ class PersistStore {
   }
   async addNote(note: IRecord) {
     await this.ensureDBReady();
+
+    addOrUpdateBookMark(note);
+
+    // sync in add and update
+    // if (note.syncBrowser) {
+    //   // todo later: add or modify bookmark accroding to profile settings, for now, default sync.
+    //   delete note.syncBrowser;
+    // }
     const ts = +new Date();
     return this.localDB.linknote
       .insert({
@@ -157,6 +166,9 @@ class PersistStore {
   }
   async updateNote(note: IRecord) {
     await this.ensureDBReady();
+
+    addOrUpdateBookMark(note);
+
     const ts = +new Date();
     return this.localDB.linknote
       .upsert({ ...note, updateTime: ts })
@@ -171,6 +183,7 @@ class PersistStore {
     // if (!tag?.id) {
     //   tag.id = getDateBasedPrimaryKey();
     // }
+
     const ts = +new Date();
     return this.localDB.tags
       .insert({

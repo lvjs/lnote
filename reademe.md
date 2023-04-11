@@ -16,14 +16,15 @@ todos
 
 # 2023年04月03日15:34:36
 todos
-1. no duplicate note (~~switch edit mode to update after add success~~ | check note change after subimt action)
+1. ~~no duplicate note (switch edit mode to update after add success | check note change after subimt action)~~
 2. ~~after add or search notes, hide content popup~~
-3. sync system bookmark<p0>, sync settings move to profile settings instead of bookmark view<p2>
-  a. if no matched bookmark for current url, create a new one
-  b. if do have matched bookmark, update it.
+3. ~~sync system bookmark<p0>~~
+  ~~a. if no matched bookmark for current url, create a new one~~
+  ~~b. if do have matched bookmark, update it.~~
 4. ~~fix case sensitive search~~
-5. note search and manipulate(~~short cut for delete~~， snap view or other useful actions)
-6. note short cut for edit scenario(delete)
+5. ~~note search and manipulate(short cut for delete)~~
+6. ~~note short cut for edit scenario(delete)~~
+7. sync settings move to profile settings instead of bookmark view<p2>
 
 # 2023年03月22日
 todo: query all notes

@@ -1,10 +1,11 @@
 type HightlightProps = {
-  text: string;
+  text: string | undefined;
   keyword: string;
   style?: string;
 };
 export default function (props: HightlightProps) {
   const { text, keyword, style } = props;
+  if (!text) return;
   const splitText = text.split(keyword);
   const res: string[] = [];
   for (let i = 0; i < splitText.length; i++) {
