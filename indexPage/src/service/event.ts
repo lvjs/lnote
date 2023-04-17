@@ -116,10 +116,25 @@ function isEmbed(element: HTMLElement) {
 function isFocusable(element: HTMLElement) {
   return element && (isEditable(element) || isEmbed(element));
 }
+
+function getActiveElement(): HTMLElement {
+  let activeElement = document.activeElement;
+  while (
+    activeElement &&
+    activeElement.shadowRoot &&
+    activeElement.shadowRoot.activeElement
+  )
+    activeElement = activeElement.shadowRoot.activeElement;
+  return activeElement as HTMLElement;
+}
 function checkInputMode(event: KeyboardEvent) {
   // If an Input Method Editor is processing key input and the event is keydown, return 229.
   const isIMEKeyDown = event.keyCode === 229;
-  return isIMEKeyDown || isFocusable(event.target as HTMLElement);
+  return (
+    isIMEKeyDown ||
+    isFocusable(event.target as HTMLElement) ||
+    isFocusable(getActiveElement())
+  );
 }
 // 全局事件注册
 document.addEventListener("keydown", onKeyEvent);

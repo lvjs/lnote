@@ -63,6 +63,12 @@ function onKeyEvent(event) {
   }
   return true;
 }
+function getActiveElement() {
+  let activeElement = document.activeElement;
+  while (activeElement && activeElement.shadowRoot && activeElement.shadowRoot.activeElement)
+    activeElement = activeElement.shadowRoot.activeElement;
+  return activeElement;
+}
 //
   // Selectable means that we should use the simulateSelect method to activate the element instead of a click.
   //
@@ -102,7 +108,7 @@ function checkInputMode(event) {
   }
   // If an Input Method Editor is processing key input and the event is keydown, return 229.
   const isIMEKeyDown = event.keyCode === 229;
-  return isIMEKeyDown || isFocusable(event.target)
+  return isIMEKeyDown || isFocusable(event.target) || isFocusable(getActiveElement())
 }
 // todo: wrap a event tunnel to communicate with popup window
 // 1. use iframe name

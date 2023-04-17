@@ -1,5 +1,14 @@
 ## lnote todos
 
+# 2023年04月17日14:33:57
+1. 多个词联合搜索，以空格分隔。参考vimium
+
+# 2023年04月14日19:53:03
+1. 搞一个个人域名，以使用vercel自定义域名功能<chatGPT 乱入>
+
+# 2023年04月12日10:47:20
+1. speed up content window show. use placeholder or preload before trigger key< rebuild with astro?>
+
 # 2023年04月07日16:34:01
 1. add task Manager <p1> <after build event tunnel>
 2. ~~disable content script in iframe window. fix by set "all_frames": false~~
