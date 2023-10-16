@@ -14,18 +14,21 @@
 // sync storage for view
 
 const eventKeyMap = {
-  'w': togglePopWindow, // todo: go to note add pannel
-  's': togglePopWindow, // todo: go to note search pannel
-  // 't': togglePopWindow, // todo: go to task pannel
-  // 'p': togglePopWindow, // todo: go to profile pannel
+  'w': openPopWindow.bind(null, '#/bookmark'), // go to note add panel
+  's': openPopWindow.bind(null, '#/search'), // go to note search panel
+  // 't': , // todo: go to task panel
+  // 'p': , // todo: go to profile panel
+  'Escape': closePopWindow, // todo: fix 点击input，input focus 时，escape可能无法退出focus态
 }
 
 let popupHandler = null;
-function popNoteWindow() {
+let iframeHandler = null;
+function popNoteWindow(path) {
   if (popupHandler) {
     return popupHandler;
   }
   const iframeElement = document.createElement("iframe");
+  iframeHandler = iframeElement;
   const shadowWrapper = document.createElement("div");
   let shadowDOM;
   if (shadowWrapper.attachShadow)
@@ -41,7 +44,7 @@ function popNoteWindow() {
     items => styleSheet.innerHTML = items.noteCSSInChromeStorage);
   shadowDOM.appendChild(styleSheet);
   shadowDOM.appendChild(iframeElement);
-  iframeElement.src = chrome.runtime.getURL('pages/index.html');
+  iframeElement.src = chrome.runtime.getURL('pages/index.html') + (path || '');
   document.documentElement.appendChild(shadowWrapper);
   console.log('iframeElement', iframeElement)
   console.log('shadowDOM', shadowDOM)
@@ -112,13 +115,33 @@ function checkInputMode(event) {
 }
 // todo: wrap a event tunnel to communicate with popup window
 // 1. use iframe name
-// 2. use extention event model. need to resolve cold start by send a initial signal to content script when pop window's able to receive msg.
-function togglePopWindow() {
+// 2. use extension event model. need to resolve cold start by send a initial signal to content script when pop window's able to receive msg.
+function openPopWindow(openPath) {
   if (!popupHandler) {
-    popupHandler = popNoteWindow();
+    popupHandler = popNoteWindow(openPath);
   }
   const isVisible = popupHandler.className === 'visible';
-  popupHandler.className = isVisible ? 'invisible' : 'visible'
+  const matchPath = iframeHandler.src.match(/#.*?$/);
+  if (matchPath && matchPath[0] !== openPath) {
+    iframeHandler.src = iframeHandler.src.replace(/#.*?$/, openPath);
+  } else if (!matchPath) {
+    iframeHandler.src = iframeHandler.src + `${openPath}`;
+  }
+  if (!isVisible) {
+    popupHandler.className = 'visible';
+  }
+  iframeHandler.focus();
+}
+
+function closePopWindow() {
+  if (!popupHandler) {
+    return;
+  }
+  popupHandler.className = 'invisible';
+  window.focus();
+  setTimeout(() => {
+    sendMsgToUiFrame({event: "focus", target: 'input',});
+  }, 200)
 }
 // 全局事件注册
 document.addEventListener("keydown", onKeyEvent);
@@ -134,3 +157,19 @@ chrome.runtime.onMessage.addListener(
     }
   }
 );
+
+let messagePort;
+chrome.runtime.onConnect.addListener(function(port) {
+  console.log('port establish on content_script: ', port);
+  messagePort = port;
+  port.onMessage.addListener(function(msg) {
+    console.log('on port msg from uiFrame: ', msg);
+    if (msg.data === "Knock knock") {
+      port.postMessage({event: "focus", target: 'input',});
+    }
+  });
+});
+
+function sendMsgToUiFrame(msg) {
+  messagePort?.postMessage(msg);
+}

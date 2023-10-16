@@ -1,10 +1,13 @@
 ## lnote todos
+# 2023年08月18日11:19:23
+1. 弹出窗口获取focus
+2. esc无法 un-focus search input
+
+#2023年08月14日18:52:54
+1. search view onShow时input; focus input focus key trigger not working
 
 # 2023年04月17日14:33:57
 1. 多个词联合搜索，以空格分隔。参考vimium
-
-# 2023年04月14日19:53:03
-1. 搞一个个人域名，以使用vercel自定义域名功能<chatGPT 乱入>
 
 # 2023年04月12日10:47:20
 1. speed up content window show. use placeholder or preload before trigger key< rebuild with astro?>
@@ -19,7 +22,7 @@
 
 # 2023年04月04日14:16:17
 todos
-1. 增加直接打开search pannel的快捷键 <after build event tunnel>
+1. ~~增加直接打开search pannel的快捷键 <after build event tunnel>~~
 2. 顶部菜单icon化，增加back，forward功能 <p1>
 3. add desc header content to note content <after build event tunnel>
 

@@ -164,7 +164,7 @@ async function handleSubmit(data: any) {
       duration: 1000,
     });
     setTimeout(() => {
-      sendEventToTab("togglePopWindow");
+      sendEventToTab("closePopWindow");
     }, 1000);
   }
 }

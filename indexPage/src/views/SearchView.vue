@@ -1,17 +1,27 @@
 <script lang="tsx" setup>
 import { ref } from "vue";
+// import { ref, onMounted, watch } from "vue";
 import noteStore from "../service/dataService";
 import Hightlight from "../components/Highlight";
 import router from "@/router";
 import globalData from "@/service/global";
 import { sendEventToTab } from "../service/event";
 import type { IRecord } from "@/service/schema";
+// import { useDocumentVisibility } from '@vueuse/core'
 
 // ctrl/cmd + enter  && click to edit  | enter to go to bookmark
 // todo1: search only (bookmark) notes first。then add history, tab, system bookmark(highlight if match lnote) <use worker to fetch>
 const options = ref([] as Record<string, any>[]);
 const loading = ref(false);
-
+// onMounted(() => {
+//   focusInput();
+// });
+// const visibility = useDocumentVisibility();
+// watch(visibility, (current, previous) => {
+//   if (current === 'visible' && previous === 'hidden') {
+//     focusInput();
+//   }
+// });
 let deletingDoc = false;
 async function deleteNote(id: string) {
   if (deletingDoc) {
@@ -32,6 +42,23 @@ async function deleteNote(id: string) {
 function editNote(id: string) {
   router.push({ name: "bookmark", params: { id } });
 }
+
+function handleBlur(e: Event) {
+  // console.log("event blur", e);
+  // sendEventToTab("closePopWindow");
+}
+// function focusInput() {
+//   setTimeout(() => {
+//     // (
+//     //     document.getElementsByClassName("arco-select-view-input")[0] as HTMLElement
+//     // ).click();
+//     (
+//       document.getElementsByClassName(
+//         "arco-select-view-input"
+//       )[0] as HTMLElement
+//     ).focus();
+//   }, 17);
+// }
 
 const handleSearch = (keyword: string) => {
   if (keyword) {
@@ -121,7 +148,7 @@ async function handleValChange<T extends ISelectValChange>(noteId: T) {
         window.open(url);
       } else {
         // 发送关闭弹窗事件
-        await sendEventToTab("togglePopWindow");
+        await sendEventToTab("closePopWindow");
         const winConfig = { url, active: true };
         chrome.tabs.create(winConfig, (e) => {
           console.log("openNewTab", e);
@@ -141,6 +168,7 @@ async function handleValChange<T extends ISelectValChange>(noteId: T) {
       allow-search
       :filter-option="false"
       :options="options"
+      @blur="handleBlur"
       @search="handleSearch"
       @change="handleValChange"
     >

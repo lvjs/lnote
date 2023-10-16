@@ -3,10 +3,17 @@ import { reverseMap } from "./utils";
 
 type InoDomEvent = Record<string, boolean | number | string>;
 const eventKeyMap = {
-  w: "togglePopWindow",
+  Escape: "closePopWindow",
 };
 const functionKeyMap = reverseMap(eventKeyMap);
 
+export async function getActiveTabInfo() {
+  const [tab] = await chrome.tabs.query({
+    active: true,
+    lastFocusedWindow: true,
+  });
+  return tab;
+}
 export async function sendEventToTab(evt: InoDomEvent | string) {
   let event = evt;
   if (typeof evt === "string") {
@@ -14,10 +21,7 @@ export async function sendEventToTab(evt: InoDomEvent | string) {
   }
 
   if (!import.meta.env.DEV) {
-    const [tab] = await chrome.tabs.query({
-      active: true,
-      lastFocusedWindow: true,
-    });
+    const tab = await getActiveTabInfo();
     if (tab.id) {
       const response = await chrome.tabs.sendMessage(tab.id, {
         msgFromPopWindow: true,
@@ -48,7 +52,7 @@ async function onKeyEvent(event: KeyboardEvent) {
   globalData.lastPressedKey = noDomEvent;
   // console.error("lastPressKey", noDomEvent);
   // 忽略文字输入和ime
-  if (checkInputMode(event)) {
+  if (event.key !== "Escape" && checkInputMode(event)) {
     return;
   }
   // todo: 事件漏斗：如果有match的处理函数且事件有阻止冒泡属性，则不通过event_channel通知content_script，否则通知
@@ -138,5 +142,30 @@ function checkInputMode(event: KeyboardEvent) {
 }
 // 全局事件注册
 document.addEventListener("keydown", onKeyEvent);
+
+let sendMsgToContentScriptHandler: (msg: Record<string, any>) => void;
+export function sendMsgToContentScript(msg: Record<string, any>) {
+  if (sendMsgToContentScriptHandler) {
+    sendMsgToContentScriptHandler(msg);
+  } else {
+    throw new Error("event channel not ready");
+  }
+}
+async function setEventChannel() {
+  if (!import.meta.env.DEV) {
+    const tab = await getActiveTabInfo();
+    const port = chrome.tabs.connect(tab.id as number);
+    sendMsgToContentScriptHandler = port.postMessage;
+    port.postMessage({ uiFrameInitDone: true, data: "Knock knock" });
+    port.onMessage.addListener(function (msg) {
+      console.log("on msg from content_script:", msg);
+      if (msg.event === "focus" && msg.target === "input") {
+        document.getElementsByTagName("input")?.[0].focus();
+      }
+    });
+  }
+}
+
+setEventChannel();
 
 export {};
